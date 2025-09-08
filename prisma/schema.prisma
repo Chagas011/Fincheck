@@ -42,9 +42,8 @@ model BankAccount {
   type           BankAccountType
   color          String
 
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions  Transaction[]
-  transactionId String        @db.Uuid
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
 
   @@map("bank_accounts")
 }

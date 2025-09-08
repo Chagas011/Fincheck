@@ -8,7 +8,7 @@ import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
 import { env } from "src/config/env";
-import { IS_PUBLIC_KEY } from "src/decorators/isPublic";
+import { IS_PUBLIC_KEY } from "src/decorators/IsPublic";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -26,7 +26,7 @@ export class AuthGuard implements CanActivate {
 		if (isPublic) {
 			return true;
 		}
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
 		const request = context.switchToHttp().getRequest();
 
 		const token = this.extractTokenFromHeader(request);
@@ -34,7 +34,6 @@ export class AuthGuard implements CanActivate {
 			throw new UnauthorizedException();
 		}
 		try {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const payload = await this.jwtService.verifyAsync(token, {
 				secret: env.jwtSecret,
 			});
