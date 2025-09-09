@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateBankAccountDto } from "./dto/create-bank-account.dto";
 import { UpdateBankAccountDto } from "./dto/update-bank-account.dto";
 import { PrismaService } from "src/database/prisma.service";
@@ -30,12 +30,54 @@ export class BankAccountsService {
 	findOne(id: number) {
 		return `This action returns a #${id} bankAccount`;
 	}
+	// Verificar se bankAccount pertence ao usuario antes de fazer o update
+	async update(
+		userId: string,
+		bankAccountId: string,
+		updateBankAccountDto: UpdateBankAccountDto,
+	) {
+		const isUserBankAccount = await this.prisma.bankAccount.findFirst({
+			where: {
+				userId,
+				id: bankAccountId,
+			},
+		});
 
-	update(id: number, updateBankAccountDto: UpdateBankAccountDto) {
-		return `This action updates a #${id} bankAccount`;
+		if (!isUserBankAccount) {
+			throw new NotFoundException("Bank Account not found");
+		}
+		const { name, initialBalance, color, type } = updateBankAccountDto;
+		return this.prisma.bankAccount.update({
+			where: {
+				id: bankAccountId,
+			},
+			data: {
+				name,
+				initialBalance,
+				color,
+				type,
+			},
+		});
 	}
 
-	remove(id: number) {
-		return `This action removes a #${id} bankAccount`;
+	async remove(userId: string, bankAccountId: string) {
+		const isUserBankAccount = await this.prisma.bankAccount.findFirst({
+			where: {
+				userId,
+				id: bankAccountId,
+			},
+		});
+
+		if (!isUserBankAccount) {
+			throw new NotFoundException("Bank Account not found");
+		}
+
+		await this.prisma.bankAccount.delete({
+			where: {
+				id: bankAccountId,
+			},
+		});
+
+		return null;
 	}
 }
