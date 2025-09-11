@@ -53,11 +53,76 @@ export class TransactionsService {
 		});
 	}
 
-	update(id: string, updateTransactionDto: UpdateTransactionDto) {
-		return `This action updates a #${id} transaction`;
+	async update(
+		transactionId: string,
+		updateTransactionDto: UpdateTransactionDto,
+		userId: string,
+	) {
+		const { bankAccountId, categoryId, date, name, type, value } =
+			updateTransactionDto;
+
+		const transactionIsUser = await this.prisma.transaction.findFirst({
+			where: {
+				id: transactionId,
+				userId,
+			},
+		});
+		if (!transactionIsUser) {
+			throw new NotFoundException("Transaction not found");
+		}
+		const bankAccountIsUser = await this.prisma.bankAccount.findFirst({
+			where: {
+				id: bankAccountId,
+				userId,
+			},
+		});
+
+		if (!bankAccountIsUser) {
+			throw new NotFoundException("Bank Account not found");
+		}
+
+		const categoryIsUser = await this.prisma.category.findFirst({
+			where: {
+				id: categoryId,
+				userId,
+			},
+		});
+
+		if (!categoryIsUser) {
+			throw new NotFoundException("Category not found");
+		}
+
+		return await this.prisma.transaction.update({
+			where: {
+				id: transactionId,
+			},
+			data: {
+				userId,
+				bankAccountId,
+				categoryId,
+				date,
+				name,
+				type,
+				value,
+			},
+		});
 	}
 
-	remove(id: string) {
-		return `This action removes a #${id} transaction`;
+	async remove(transactionId: string, userId: string) {
+		const transactionIsUser = await this.prisma.transaction.findFirst({
+			where: {
+				id: transactionId,
+				userId,
+			},
+		});
+		if (!transactionIsUser) {
+			throw new NotFoundException("Transaction not found");
+		}
+
+		await this.prisma.transaction.delete({
+			where: {
+				id: transactionId,
+			},
+		});
 	}
 }
