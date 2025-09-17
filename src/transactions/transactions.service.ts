@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateTransactionDto } from "./dto/create-transaction.dto";
 import { UpdateTransactionDto } from "./dto/update-transaction.dto";
 import { PrismaService } from "src/database/prisma.service";
+import { TransactionType } from "./entities/transaction.entity";
 
 @Injectable()
 export class TransactionsService {
@@ -45,10 +46,24 @@ export class TransactionsService {
 		});
 	}
 
-	async findAllByUserId(userId: string) {
+	async findAllByUserId(
+		userId: string,
+		filters: {
+			month: number;
+			year: number;
+			bankAccountId?: string;
+			type?: TransactionType;
+		},
+	) {
 		return await this.prisma.transaction.findMany({
 			where: {
 				userId,
+				bankAccountId: filters.bankAccountId,
+				type: filters.type,
+				date: {
+					gte: new Date(Date.UTC(filters.year, filters.month)), // pega o primeiro dia do mes e ano informado
+					lt: new Date(Date.UTC(filters.year, filters.month + 1)),
+				},
 			},
 		});
 	}
