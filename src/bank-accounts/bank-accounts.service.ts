@@ -19,11 +19,34 @@ export class BankAccountsService {
 		});
 	}
 
-	findAllById(userId: string) {
-		return this.prisma.bankAccount.findMany({
-			where: {
-				userId,
+	async findAllById(userId: string) {
+		const bankAccounts = await this.prisma.bankAccount.findMany({
+			where: { userId },
+			include: {
+				transactions: {
+					select: {
+						value: true,
+						type: true,
+					},
+				},
 			},
+		});
+
+		return bankAccounts.map(({ transactions, ...bankAccount }) => {
+			const totalTransactions = transactions.reduce(
+				(acc, transaction) =>
+					acc +
+					(transaction.type === "INCOME"
+						? transaction.value
+						: -transaction.value),
+				0,
+			);
+			const currentBalance = bankAccount.initialBalance + totalTransactions;
+			return {
+				...bankAccount,
+				transactions,
+				currentBalance,
+			};
 		});
 	}
 
